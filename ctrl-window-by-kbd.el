@@ -1,0 +1,58 @@
+(defun ctrl-window-by-kbd ()
+  "Window size and position control by keyboard."
+  (interactive)
+  (let* ((rlist (frame-parameters (selected-frame)))
+         (tMargin       (cdr (assoc 'top rlist)))
+         (lMargin       (cdr (assoc 'left rlist)))
+         (displaywidth  (x-display-pixel-width))
+         (displayheight (x-display-pixel-height))
+         (fObj          (selected-frame))
+         (nCHeight      (frame-height))
+         (nCWidth       (frame-width))
+         endFlg
+         c)
+    (catch 'endFlg
+      (while t
+        (message "locate[%d:%d] size[%dx%d] display[%dx%d]"
+                 (if (numberp lMargin) lMargin 0) (if (numberp tMargin) tMargin 0) nCWidth nCHeight displaywidth displayheight)
+        (set-mouse-position
+         (if (or (featurep 'meadow) window-system) (selected-frame) (selected-window)) nCWidth 0)
+        (setq c (read-char))
+        (cond ((= c ?f) (set-frame-width  fObj (setq nCWidth  (+ nCWidth  2))))
+              ((= c ?b) (set-frame-width  fObj (setq nCWidth  (- nCWidth  2))))
+              ((= c ?n) (set-frame-height fObj (setq nCHeight (+ nCHeight 2))))
+              ((= c ?p) (set-frame-height fObj (setq nCHeight (- nCHeight 2))))
+              ((= c ?e) (set-frame-height fObj (setq nCWidth  displaywidth)))
+              ((= c ?m) (progn (set-frame-height fObj (setq nCHeight  displayheight))
+                               (set-frame-height fObj (setq nCWidth  displaywidth))))
+              ((= c  6) (modify-frame-parameters nil (list (cons 'left
+                                                                 (if (numberp lMargin)
+                                                                     (setq lMargin (+ lMargin 20))
+                                                                   (if (listp lMargin)
+                                                                       (setq lMargin (+ (car (cdr lMargin)) 20))
+                                                                     (setq lMargin 0)))
+                                                                 ))))
+              ((= c  2) (modify-frame-parameters nil (list (cons 'left
+                                                                 (if (numberp lMargin)
+                                                                     (setq lMargin (- lMargin 20))
+                                                                   (if (listp lMargin)
+                                                                       (setq lMargin (- (car (cdr lMargin)) 20))
+                                                                     (setq lMargin 0)))
+                                                                 ))))
+              ((= c 14) (modify-frame-parameters nil (list (cons 'top
+                                                                 (if (numberp tMargin)
+                                                                     (setq tMargin (+ tMargin 20))
+                                                                   (if (listp tMargin)
+                                                                       (setq tMargin (+ (car (cdr tMargin)) 20))
+                                                                     (setq tMargin 0)))
+                                                                 ))))
+              ((= c 16) (modify-frame-parameters nil (list (cons 'top
+                                                                 (if (numberp tMargin)
+                                                                     (setq tMargin (- tMargin 20))
+                                                                   (if (listp tMargin)
+                                                                       (setq tMargin (- (car (cdr tMargin)) 20))
+                                                                     (setq tMargin 0)))
+                                                                 ))))
+              ((= c  1) (modify-frame-parameters nil (list (cons 'left (setq lMargin 0)))))
+              ((= c  5) (modify-frame-parameters nil (list (cons 'left (setq lMargin (- displaywidth (frame-pixel-width)))))))
+              ((= c ?q) (message "quit") (throw 'endFlg t)))))))
